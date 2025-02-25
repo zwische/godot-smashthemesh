@@ -42,6 +42,15 @@ const PhysicsTool = preload("stm_physics_tool.gd")
 const chunk_safe_limit = 6
 
 #---------------------------------------------------------------------------------------------------
+# SHARED/STATIC VARIABLES
+#---------------------------------------------------------------------------------------------------
+
+## The root node to which all chunks are added.
+## Leave at null to default to get_tree().root.
+## Only change this variable when there are no chunks currently existing.
+static var root: Node = null
+
+#---------------------------------------------------------------------------------------------------
 # PUBLIC VARIABLES
 #---------------------------------------------------------------------------------------------------
 
@@ -273,7 +282,7 @@ func smash_the_mesh():
 		cs.transform = cs.transform.translated_local(-cs.position).scaled_local(global_scale_t).translated_local(cs.position)
 
 	# We put the chunks in the scene
-	get_tree().root.add_child.call_deferred(rb_parent, false, Node.INTERNAL_MODE_BACK)
+	get_root().add_child.call_deferred(rb_parent, false, Node.INTERNAL_MODE_BACK)
 	
 	# Experimental ( a bit hardcoded, probably it will be modified )
 	# If the original mesh istance was already part of some physical simulation
@@ -342,7 +351,7 @@ func chunks_restart_elapsed_time():
 # This method will remove all the chunks of this mesh 
 func chunks_kill():
 	if !rb_parent: return
-	get_tree().root.remove_child(rb_parent)
+	get_root().remove_child(rb_parent)
 	rb_parent.queue_free()
 	rb_parent = null
 
@@ -350,7 +359,7 @@ func chunks_kill():
 func chunks_reset():
 	if !rb_parent: return
 	if is_equal_approx(stm_alive_time, 0): return
-	get_tree().root.remove_child(rb_parent)
+	get_root().remove_child(rb_parent)
 	stm_alive_time = 0
 	self.visible = true
 
@@ -411,3 +420,9 @@ func cut_the_mesh(cutter_mesh: ArrayMesh):
 	rb_parent = PhysicsTool.gen_rigid_body(result[0], self)
 
 	mesh = result[1]
+
+func get_root() -> Node:
+	if (is_instance_valid(root)):
+		return root
+	else:
+		return get_tree().root
